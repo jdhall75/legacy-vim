@@ -1,0 +1,171 @@
+" set no compatible
+set nocompatible
+
+set rtp+=/usr/local/share/vim/autoload
+call plug#begin()
+" The default plugin directory will be as follows:
+"   - Vim (Linux/macOS): '~/.vim/plugged'
+"   - Vim (Windows): '~/vimfiles/plugged'
+"   - Neovim (Linux/macOS/Windows): stdpath('data') . '/plugged'
+" You can specify a custom plugin directory by passing it as the argument
+"   - e.g. `call plug#begin('~/.vim/plugged')`
+"   - Avoid using standard Vim directory names like 'plugin'
+
+" Make sure you use single quotes
+
+" Plugin outside ~/.vim/plugged with post-update hook
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+" corrects some of the issues with vims python autoindent
+Plug 'vim-scripts/indentpython.vim'
+
+" git support
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-sensible'
+
+" Formatting
+Plug 'psf/black', { 'branch': 'stable' }
+
+" find where I went wrong PEP8
+Plug 'nvie/vim-flake8'
+
+Plug 'sotte/presenting.vim'
+
+Plug 'itspriddle/vim-themes'
+
+" Initialize plugin system
+" - Automatically executes `filetype plugin indent on` and `syntax enable`.
+call plug#end()
+" You can revert the settings after the call like so:
+" filetype indent off   " Disable file-type-specific indentation
+" syntax off            " Disable syntax highlighting
+
+" encoding always UTF-8
+set encoding=utf-8
+
+" we are in a container.. install all the goodness
+PlugInstall
+
+" going blackout drive
+colorscheme ir_black
+
+" relative line numbers
+set rnu
+
+" how we split
+set splitbelow
+set splitright
+
+" File specific formating
+au BufNewFile,BufRead *.py
+    \ set tabstop=4
+    \ set softtabstop=4
+    \ set shiftwidth=4
+    \ set textwidth=79
+    \ set expandtab
+    \ set autoindent
+    \ set fileformat=unix
+    \ set makeprg=flake8
+    \ nnoremap <leader>pf :Black<CR>
+
+au BufNewFile,BufRead *.yml, *.js, *.html
+    \ set tabstop=2
+    \ set softtabstop=2
+    \ set shiftwidth=2
+    \ set expandtab
+    \ set autoindent
+    \ set fileformat=unix
+
+let mapleader = " "
+
+" split navigations
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
+
+" Buffer list
+nnoremap <leader>bb :ls<CR>:b
+
+" C is for quick
+nnoremap <leader>cw :cw<CR>
+nnoremap <leader>cn :cnext<CR>
+nnoremap <leader>cp :cprev<CR>
+nnoremap <leader>co :colder<CR>
+nnoremap <leader>cnew :cnewer<CR>
+nnoremap <leader>ch :chistory<CR>
+
+" netrw because who needs nerdTree
+let g:netrw_keepdir = 0
+let g:netrw_winsize = 30
+let g:netrw_banner = 0
+" hide dot files
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
+let g:netrw_localcopydircmd = 'cp -r'
+" highlight marked files
+hi! link netrwMarkFile Search
+" dd current directory of working file
+" da current working directory
+nnoremap <leader>dd :Lexplore %:p:h<CR>
+nnoremap <Leader>da :Lexplore<CR>
+
+function! NetrwMapping()
+  nmap <buffer> H u
+  nmap <buffer> h -^
+  nmap <buffer> l <CR>
+
+  nmap <buffer> . gh
+  nmap <buffer> P <C-w>z
+
+  nmap <buffer> L <CR>:Lexplore<CR>
+  nmap <buffer> <Leader>dd :Lexplore<CR>
+endfunction
+
+
+augroup netrw_mapping
+  autocmd!
+  autocmd filetype netrw call NetrwMapping()
+augroup END
+" mark/unmark files in netrw
+nmap <buffer> <TAB> mf
+nmap <buffer> <S-TAB> mF
+nmap <buffer> <Leader><TAB> mu
+" file commands
+nmap <buffer> ff %:w<CR>:buffer #<CR>
+nmap <buffer> fe R
+nmap <buffer> fc mc
+nmap <buffer> fC mtmc
+nmap <buffer> fx mmYou can reach out to me on social media:
+nmap <buffer> fX mtmm
+nmap <buffer> f; mx
+" Show a list of marked files.
+nmap <buffer> fl :echo join(netrw#Expose("netrwmarkfilelist"), "\n")<CR>
+" Show the target directory, just in case we want to avoid the banner.
+nmap <buffer> fq :echo 'Target:' . netrw#Expose("netrwmftgt")<CR>
+nmap <buffer> fd mtfq
+" book marks
+nmap <buffer> bb mb
+nmap <buffer> bd mB
+nmap <buffer> bl gb
+
+nnoremap <leader>pi :PlugInstall<CR>
+" remove directories recursively
+function! NetrwRemoveRecursive()
+  if &filetype ==# 'netrw'
+    cnoremap <buffer> <CR> rm -r<CR>
+    normal mu
+    normal mf
+
+    try
+      normal mx
+    catch
+      echo "Canceled"
+    endtry
+
+    cunmap <buffer> <CR>
+  endif
+endfunction
+
+nmap <buffer> FF :call NetrwRemoveRecursive()<CR>
+
